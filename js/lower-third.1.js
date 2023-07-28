@@ -119,7 +119,25 @@ const _graphic = (function() {
         const subtitle =        subtitleControl.querySelector('p');
 
         const graphicWidth = getComputedStyle(graphic, 'width')[0];
-        const pathWidth
+        const pathWidth    = graphicWidth * 2;
+
+        // TODO Understand this
+        // ANIMATION!!
+        const animationTimeline = new gsap.timeline({duration: 1, ease: 'power1.out'});
+
+        animationTimeline.set([pathLeft, pathRight], {
+                strokeDashoffset: pathWidth,
+                strokeDasharray: pathWidth
+            }).set(title, {y: '15vh'})
+            .set(subtitleControl, {y: '10vh'})
+            .set(subtitle, {y: '20vh'})
+            .set(graphic, {opacity: 1})
+            .to([pathLeft, pathRight], {
+                strokeDashoffset: 0,
+                duration: 1.5
+            }).to(title, {y: 0}, '-=1')
+            .to(subtitleControl, {y: 0}, '-=.9')
+            .to(subtitle, {y: 0}, '-=1');
     }
 
     function animateOut() {}
