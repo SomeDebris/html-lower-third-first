@@ -11,6 +11,8 @@ const _graphic = (function() {
     let currentStep = 0;
     let data = [];
     let style;
+    const animationQueue = [];
+    const animationThreshold = 3;
 
     (function() {
         window['update'] = (raw) => update(raw);
@@ -19,6 +21,26 @@ const _graphic = (function() {
         window['stop'] = stop;
         window['remove'] = remove;
     })();
+
+    function executePlayOutCommand() {
+        // Run the first promise
+        animationQueue[0]().then(() => {
+            // MAGNUS: this removes an item from the queue?
+            animationQueue.splice(0, 1);
+
+            if (animationQueue.length) executePlayOutCommand();
+        }).catch(e => handleError(e));
+    }
+
+    function addPlayOutCommand(prom) {
+        if (animationQueue.length < animationThreshold)
+            animationQueue.push(prom);
+        // warn user about threshold
+        if (animationQueue.length === animationThreshold)
+            handleWarning('animationThreshold met');
+        // if there is only one command, run it!
+        if (animationQueue.length === 1) executePlayOutCommand();
+    }
 
     function applyData() {
         const graphic = document.querySelector('.lt-style-one .graphic');
@@ -147,24 +169,31 @@ const _graphic = (function() {
     }
 
     function animateOut() { 
-        const graphic = document.querySelector('.lt-style-one .graphic');
-        const [pathLeft, pathRight] = graphic.querySelectorAll('svg path');
-        const title = graphic.querySelector('h1');
-        const subtitleControl = graphic.querySelector('.subtitle');
-        const subtitle = subtitleControl.querySelector('p');
-        const titleWidth = getComputedStyle(graphic, 'width');
-        const pathLength = titleWidth * 2;
-        
-        const animationTimeline = new gsap.timeline({duration: 1, ease: 'power1.is'});
-        animationTimeline.to(title, {y: '15vh'})
-            .to(subtitleControl, {y: '10vh'}, '-=.75')
-            .to(subtitle, {y: '20vh'}, '-=.55')
-            .to([pathLeft, pathRight], {
-                strokeDashoffset: pathLength,
-                ease: 'power1.inOut',
-                duration: 2
-            }, '-=1')
-            .to(graphic, {opacity: 0}, '-=.25');
+        return new Promise((resolve, reject) => {
+            const graphic = document.querySelector('.lt-style-one .graphic');
+            const [pathLeft, pathRight] = graphic.querySelectorAll('svg path');
+            const title = graphic.querySelector('h1');
+            const subtitleControl = graphic.querySelector('.subtitle');
+            const subtitle = subtitleControl.querySelector('p');
+            const titleWidth = getComputedStyle(graphic, 'width');
+            const pathLength = titleWidth * 2;
+            
+            const animationTimeline = new gsap.timeline({
+                duration: 1, 
+                ease: 'power1.in',
+                onComplete: resolve
+            });
+
+            animationTimeline.to(title, {y: '15vh'})
+                .to(subtitleControl, {y: '10vh'}, '-=.75')
+                .to(subtitle, {y: '20vh'}, '-=.55')
+                .to([pathLeft, pathRight], {
+                    strokeDashoffset: pathLength,
+                    ease: 'power1.inOut',
+                    duration: 2
+                }, '-=1')
+                .to(graphic, {opacity: 0}, '-=.25');
+        });
     }
 
     function play() {
@@ -176,7 +205,26 @@ const _graphic = (function() {
         }
     }
 
-    function next() { }
+    function next() {
+        if (state === 1) {
+            play();
+        } else if (state === 2) {
+            if (data.length > currentStep + 1) {
+                // This means that there is another title to show!
+                currentStep++;
+                const animation = () => animateOut().then(() => {
+                    activeStep++;
+                    applyData();
+                    return;
+                }).then(animateIn);
+                addPlayOutCommand(animation);
+            } else {
+                handleError('Graphic is out of titles to display');
+            }
+        } else {
+            handleError('Graphic cannot be advanced while in state ' + state);
+        }
+    }
 
     function stop() {
         // state 2 = graphic is PLAYED.
