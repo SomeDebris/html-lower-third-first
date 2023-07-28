@@ -140,7 +140,26 @@ const _graphic = (function() {
             .to(subtitle, {y: 0}, '-=1');
     }
 
-    function animateOut() {}
+    function animateOut() { 
+        const graphic = document.querySelector('.lt-style-one .graphic');
+        const [pathLeft, pathRight] = graphic.querySelectorAll('svg path');
+        const title = graphic.querySelector('h1');
+        const subtitleControl = querySelector('.subtitle');
+        const subtitle = subtitleControl.querySelector('p');
+        const titleWidth = getComputedStyle(graphic, 'width');
+        const pathLength = titleWidth * 2;
+        
+        const animationTimeline = new gsap.timeline({duration: 1, ease: 'power1.is'});
+        animationTimeline.to(title, {y: '15vh'})
+            .to(subtitleControl, {y: '10vh'}, '-=.75')
+            .to(subtitle, {y: '20vh'}, '-=.55')
+            .to([pathLeft, pathRight], {
+                strokeDashoffset: pathLength,
+                ease: 'power1.inOut',
+                duration: 2
+            }, '-=1')
+            .to(graphic, {opacity: 0}, '-=.25');
+    }
 
     function play() {
         // state 1 = graphic is LOADED, remember that line from the update
@@ -152,7 +171,16 @@ const _graphic = (function() {
     }
 
     function next() { }
-    function stop() { }
+
+    function stop() {
+        // state 2 = graphic is PLAYED.
+        // setting state back to 1 also!
+        if (state === 2) {
+            animateOut();
+            state = 1;
+        }
+    }
+
     function remove() { }
 
     function handleError(e) {console.error(e)}
