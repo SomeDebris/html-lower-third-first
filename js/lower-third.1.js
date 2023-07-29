@@ -16,6 +16,8 @@ const _graphic = (function() {
 
     (function() {
         window['update'] = (raw) => update(raw);
+        window['previous'] = previous;
+        window['reset'] = reset;
         window['play'] = play;
         window['next'] = next;
         window['stop'] = stop;
@@ -253,6 +255,33 @@ const _graphic = (function() {
             return;
         }
         addPlayOutCommand(animation);
+    }
+
+    function previous() {
+        if (currentStep > 0) {
+            let animation;
+            if (state === 2) {
+                currentStep -= 2;
+
+                animation = () => new Promise((resolve, reject) => {
+                    activeStep -= 1;
+                    resolve();
+                });
+            } else if (state === 1) {
+                currentStep -= 1;
+                animation = () => new Promise((resolve, reject) => {
+                    activeStep -= 1;
+                    applyData();
+                    resolve();
+                });
+            } else {
+                handleError('Graphic cannot go back one title in current state!');
+                return;
+            }
+            addPlayOutCommand(animation);
+        } else {
+            handleError('There is no graphic to go backwards to!');
+        }
     }
 
     async function remove() {
