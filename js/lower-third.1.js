@@ -235,7 +235,10 @@ const _graphic = (function() {
         }
     }
 
-    function remove() { }
+    async function remove() {
+        if (state === 2) 
+            await animateOut();
+    }
 
     function handleError(e) {console.error(e)}
     function handleWarning(w) {console.log(w)}
