@@ -235,6 +235,26 @@ const _graphic = (function() {
         }
     }
 
+    function reset() {
+        if (currentStep === 0) {
+            handleError('The Graphic is already on the first item');
+            return;
+        }
+        let animation;
+        if (state === 1) {
+            currentStep = 0;
+            animation = () => new Promise((resolve, reject) => {
+                activeStep = 0;
+                applyData();
+                resolve();
+            }).then(next);
+        } else {
+            handleError('cannot reset a graphic that has not been loaded.');
+            return;
+        }
+        addPlayOutCommand(animation);
+    }
+
     async function remove() {
         if (state === 2) 
             await animateOut();
