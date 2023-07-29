@@ -147,7 +147,7 @@ const _graphic = (function() {
             // TODO Understand this
             // ANIMATION!!
             const animationTimeline = new gsap.timeline({
-                duration: 1, 
+                duration: 0.5,
                 ease: 'power1.out',
                 onComplete: resolve
             });
@@ -161,7 +161,7 @@ const _graphic = (function() {
                 .set(graphic, {opacity: 1})
                 .to([pathLeft, pathRight], {
                     strokeDashoffset: 0,
-                    duration: 1.5
+                    duration: 1
                 }).to(title, {y: 0}, '-=1')
                 .to(subtitleControl, {y: 0}, '-=.9')
                 .to(subtitle, {y: 0}, '-=1');
@@ -179,7 +179,7 @@ const _graphic = (function() {
             const pathLength = titleWidth * 2;
             
             const animationTimeline = new gsap.timeline({
-                duration: 1, 
+                duration: 0.5, 
                 ease: 'power1.in',
                 onComplete: resolve
             });
@@ -190,7 +190,7 @@ const _graphic = (function() {
                 .to([pathLeft, pathRight], {
                     strokeDashoffset: pathLength,
                     ease: 'power1.inOut',
-                    duration: 2
+                    duration: 1
                 }, '-=1')
                 .to(graphic, {opacity: 0}, '-=.25');
         });
